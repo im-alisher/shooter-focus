@@ -17,7 +17,7 @@ export const DEFAULT_HUD_SETTINGS: HudSettings = {
   showRing: true,
   showCenterDot: true,
   showLockAnimation: true,
-  showDebugBox: true,
+  showDebugBox: false,
   effects: { ...DEFAULT_HUD_EFFECTS },
 }
 
