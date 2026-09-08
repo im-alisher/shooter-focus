@@ -6,6 +6,7 @@ interface WebcamFeedProps {
   status: WebcamStatus
   error: WebcamError | null
   onStart: () => void
+  mirror?: boolean
 }
 
 function StatusPrompt({
@@ -58,6 +59,7 @@ export default function WebcamFeed({
   status,
   error,
   onStart,
+  mirror = true,
 }: WebcamFeedProps) {
   const isActive = status === 'ready'
 
@@ -67,7 +69,7 @@ export default function WebcamFeed({
         ref={videoRef}
         className={`h-full w-full object-cover transition-opacity duration-500 ${
           isActive ? 'opacity-100' : 'opacity-0'
-        }`}
+        } ${mirror ? '-scale-x-100' : ''}`}
         muted
         playsInline
         autoPlay

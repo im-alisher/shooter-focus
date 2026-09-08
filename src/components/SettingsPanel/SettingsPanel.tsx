@@ -7,18 +7,22 @@ import { Section, Slider, Toggle } from './controls'
 interface SettingsPanelProps {
   open: boolean
   settings: HudSettings
+  mirror: boolean
   onToggle: () => void
   onUpdateStyle: (patch: Partial<TargetLockStyle>) => void
   onUpdateEffects: (patch: Partial<HudEffects>) => void
+  onToggleMirror: () => void
   onReset: () => void
 }
 
 export default function SettingsPanel({
   open,
   settings,
+  mirror,
   onToggle,
   onUpdateStyle,
   onUpdateEffects,
+  onToggleMirror,
   onReset,
 }: SettingsPanelProps) {
   return (
@@ -79,6 +83,11 @@ export default function SettingsPanel({
         </Section>
 
         <Section title="Overlay">
+          <Toggle
+            label="Mirror View"
+            checked={mirror}
+            onChange={onToggleMirror}
+          />
           <Toggle
             label="Ring"
             checked={settings.showRing}

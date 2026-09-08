@@ -12,19 +12,26 @@ interface DebugOverlayProps {
   faceRef: RefObject<FaceData>
   videoRef: RefObject<HTMLVideoElement | null>
   visible: boolean
+  mirror?: boolean
 }
 
 export default function DebugOverlay({
   faceRef,
   videoRef,
   visible,
+  mirror = true,
 }: DebugOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const visibleRef = useRef(visible)
+  const mirrorRef = useRef(mirror)
 
   useEffect(() => {
     visibleRef.current = visible
   }, [visible])
+
+  useEffect(() => {
+    mirrorRef.current = mirror
+  }, [mirror])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -93,10 +100,17 @@ export default function DebugOverlay({
       }
 
       const transform = cachedTransform
+      const activeMirror = mirrorRef.current
 
       ctx.clearRect(0, 0, width, height)
 
-      const origin = mapPointToView(box.x, box.y, transform)
+      const origin = mapPointToView(
+        box.x,
+        box.y,
+        transform,
+        width,
+        activeMirror,
+      )
       const boxWidth = box.width * transform.scale
       const boxHeight = box.height * transform.scale
 
@@ -106,7 +120,13 @@ export default function DebugOverlay({
 
       ctx.fillStyle = 'rgba(255, 80, 80, 0.9)'
       for (const point of face.landmarks ?? []) {
-        const mapped = mapPointToView(point.x, point.y, transform)
+        const mapped = mapPointToView(
+          point.x,
+          point.y,
+          transform,
+          width,
+          activeMirror,
+        )
         ctx.beginPath()
         ctx.arc(mapped.x, mapped.y, 1.5, 0, Math.PI * 2)
         ctx.fill()

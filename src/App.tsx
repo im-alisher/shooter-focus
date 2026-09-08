@@ -27,6 +27,7 @@ function App() {
   } = useHeadTracking(videoRef, cameraReady)
   const { settings, update, updateEffects, reset } = useHudSettings()
   const [configOpen, setConfigOpen] = useState(false)
+  const [mirror, setMirror] = useState(true)
 
   return (
     <main className="flex h-full w-full items-center justify-center bg-hud-bg p-4">
@@ -36,12 +37,14 @@ function App() {
           status={status}
           error={error}
           onStart={start}
+          mirror={mirror}
         />
 
         <DebugOverlay
           faceRef={faceRef}
           videoRef={videoRef}
           visible={cameraReady && locked}
+          mirror={mirror}
         />
 
         <TargetLockOverlay
@@ -50,14 +53,17 @@ function App() {
           visible={cameraReady}
           style={settingsToStyle(settings)}
           effects={settings.effects}
+          mirror={mirror}
         />
 
         <SettingsPanel
           open={configOpen}
           settings={settings}
+          mirror={mirror}
           onToggle={() => setConfigOpen((value) => !value)}
           onUpdateStyle={update}
           onUpdateEffects={updateEffects}
+          onToggleMirror={() => setMirror((value) => !value)}
           onReset={reset}
         />
 

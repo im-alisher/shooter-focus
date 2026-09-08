@@ -15,6 +15,7 @@ interface TargetLockOverlayProps {
   visible: boolean
   style?: TargetLockStyle
   effects?: HudEffects
+  mirror?: boolean
 }
 
 const ARC_SWEEP = (Math.PI * 2) / 4
@@ -254,11 +255,13 @@ export default function TargetLockOverlay({
   visible,
   style = DEFAULT_TARGET_LOCK_STYLE,
   effects = DEFAULT_HUD_EFFECTS,
+  mirror = true,
 }: TargetLockOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const styleRef = useRef(style)
   const effectsRef = useRef(effects)
   const visibleRef = useRef(visible)
+  const mirrorRef = useRef(mirror)
   const lockProgress = useRef(0)
   const lastFrameTime = useRef(0)
   const wasLocked = useRef(false)
@@ -274,6 +277,10 @@ export default function TargetLockOverlay({
   useEffect(() => {
     visibleRef.current = visible
   }, [visible])
+
+  useEffect(() => {
+    mirrorRef.current = mirror
+  }, [mirror])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -350,10 +357,17 @@ export default function TargetLockOverlay({
       }
 
       const transform = cachedTransform
+      const activeMirror = mirrorRef.current
 
       ctx.clearRect(0, 0, width, height)
 
-      const pos = mapPointToView(target.x, target.y, transform)
+      const pos = mapPointToView(
+        target.x,
+        target.y,
+        transform,
+        width,
+        activeMirror,
+      )
       const baseRadius = mapSizeToView(target.radius, transform)
 
       if (shouldTrack) {

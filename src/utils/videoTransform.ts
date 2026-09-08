@@ -22,9 +22,14 @@ export function mapPointToView(
   x: number,
   y: number,
   transform: CoverTransform,
+  viewWidth?: number,
+  mirror = false,
 ): { x: number; y: number } {
+  const mappedX = transform.offsetX + x * transform.scale
+  const mirroredX =
+    mirror && viewWidth !== undefined ? viewWidth - mappedX : mappedX
   return {
-    x: transform.offsetX + x * transform.scale,
+    x: mirroredX,
     y: transform.offsetY + y * transform.scale,
   }
 }
