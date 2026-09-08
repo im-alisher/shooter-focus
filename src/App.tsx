@@ -19,6 +19,7 @@ function App() {
     faceRef,
     targetRef,
     locked,
+    fps,
   } = useHeadTracking(videoRef, cameraReady)
 
   return (
@@ -63,13 +64,22 @@ function App() {
               </span>
             </span>
           </div>
-          <span
-            className={`h-2 w-2 rounded-full ${
-              locked
-                ? 'bg-hud-accent shadow-[0_0_8px_2px_var(--color-hud-accent)]'
-                : 'bg-hud-secondary shadow-[0_0_8px_2px_var(--color-hud-secondary)]'
-            }`}
-          />
+          <div className="flex items-center gap-4">
+            <span
+              className={`font-mono text-[10px] uppercase tracking-widest ${
+                fps >= 45 ? 'text-hud-accent' : 'text-hud-secondary'
+              }`}
+            >
+              {fps} FPS
+            </span>
+            <span
+              className={`h-2 w-2 rounded-full ${
+                locked
+                  ? 'bg-hud-accent shadow-[0_0_8px_2px_var(--color-hud-accent)]'
+                  : 'bg-hud-secondary shadow-[0_0_8px_2px_var(--color-hud-secondary)]'
+              }`}
+            />
+          </div>
         </header>
       </div>
     </main>

@@ -6,6 +6,7 @@ import {
   computeCoverTransform,
   mapPointToView,
   mapSizeToView,
+  type CoverTransform,
 } from '../../utils/videoTransform'
 
 interface TargetLockOverlayProps {
@@ -26,6 +27,7 @@ const ARC_CENTERS = [
 const TICK_SPACING = 0.06
 const SCAN_PERIOD_MS = 1400
 const SCAN_TRAIL_STEPS = 6
+const MAX_DPR = 2
 
 function drawQuadrantArcs(
   ctx: CanvasRenderingContext2D,
@@ -281,13 +283,21 @@ export default function TargetLockOverlay({
     if (!ctx) return
 
     let rafId = 0
+    let hasPainted = false
+    let cachedSourceW = 0
+    let cachedSourceH = 0
+    let cachedW = 0
+    let cachedH = 0
+    let cachedTransform: CoverTransform | null = null
 
     const resize = () => {
-      const dpr = window.devicePixelRatio || 1
+      const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR)
       const { width, height } = canvas.getBoundingClientRect()
       canvas.width = Math.round(width * dpr)
       canvas.height = Math.round(height * dpr)
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      cachedW = 0
+      cachedH = 0
     }
 
     resize()
@@ -305,77 +315,101 @@ export default function TargetLockOverlay({
       const activeStyle = styleRef.current
       const activeEffects = effectsRef.current
 
-      ctx.clearRect(0, 0, width, height)
-
       const shouldTrack = visibleRef.current && target.locked
       const shouldDraw = shouldTrack || lockProgress.current > 0
 
-      if (shouldDraw && video) {
-        const sourceWidth = video.videoWidth || 1280
-        const sourceHeight = video.videoHeight || 720
-        const transform = computeCoverTransform(
+      if (!shouldDraw || !video) {
+        if (hasPainted) {
+          ctx.clearRect(0, 0, width, height)
+          hasPainted = false
+        }
+        rafId = requestAnimationFrame(draw)
+        return
+      }
+
+      const sourceWidth = video.videoWidth || 1280
+      const sourceHeight = video.videoHeight || 720
+
+      if (
+        !cachedTransform ||
+        sourceWidth !== cachedSourceW ||
+        sourceHeight !== cachedSourceH ||
+        width !== cachedW ||
+        height !== cachedH
+      ) {
+        cachedSourceW = sourceWidth
+        cachedSourceH = sourceHeight
+        cachedW = width
+        cachedH = height
+        cachedTransform = computeCoverTransform(
           sourceWidth,
           sourceHeight,
           width,
           height,
         )
+      }
 
-        const pos = mapPointToView(target.x, target.y, transform)
-        const baseRadius = mapSizeToView(target.radius, transform)
+      const transform = cachedTransform
 
-        if (shouldTrack) {
-          if (activeStyle.showLockAnimation) {
-            if (!wasLocked.current && target.locked) {
-              lockProgress.current = 0
-            }
-            const step = Math.min(1, dt / 240)
-            lockProgress.current += (1 - lockProgress.current) * step
-          } else {
-            lockProgress.current = 1
+      ctx.clearRect(0, 0, width, height)
+
+      const pos = mapPointToView(target.x, target.y, transform)
+      const baseRadius = mapSizeToView(target.radius, transform)
+
+      if (shouldTrack) {
+        if (activeStyle.showLockAnimation) {
+          if (!wasLocked.current && target.locked) {
+            lockProgress.current = 0
           }
+          const step = Math.min(1, dt / 240)
+          lockProgress.current += (1 - lockProgress.current) * step
         } else {
-          const step = Math.min(1, dt / 160)
-          lockProgress.current -= lockProgress.current * step
+          lockProgress.current = 1
         }
+      } else {
+        const step = Math.min(1, dt / 160)
+        lockProgress.current -= lockProgress.current * step
+      }
 
-        wasLocked.current = shouldTrack
+      wasLocked.current = shouldTrack
 
-        const progress = lockProgress.current
-        const scale = 1.4 - 0.4 * progress
-        const pulseFactor = activeEffects.pulse
-          ? 1 + 0.035 * Math.sin(now / 260)
-          : 1
-        const radius = Math.max(baseRadius * scale * pulseFactor, 18)
+      const progress = lockProgress.current
+      const scale = 1.4 - 0.4 * progress
+      const pulseFactor = activeEffects.pulse
+        ? 1 + 0.035 * Math.sin(now / 260)
+        : 1
+      const radius = Math.max(baseRadius * scale * pulseFactor, 18)
 
-        let alpha = progress
-        if (target.lost && shouldTrack) {
-          alpha *= 0.55 + 0.45 * Math.sin((now / 120) * Math.PI)
-        }
+      let alpha = progress
+      if (target.lost && shouldTrack) {
+        alpha *= 0.55 + 0.45 * Math.sin((now / 120) * Math.PI)
+      }
 
-        if (alpha > 0.01) {
-          drawLockOverlay(
-            ctx,
-            pos.x,
-            pos.y,
-            radius,
-            alpha,
-            activeStyle.color,
-            activeStyle,
-          )
+      if (alpha > 0.01) {
+        drawLockOverlay(
+          ctx,
+          pos.x,
+          pos.y,
+          radius,
+          alpha,
+          activeStyle.color,
+          activeStyle,
+        )
 
-          if (activeStyle.showRing) {
-            if (activeEffects.scan) {
-              drawScan(ctx, pos.x, pos.y, radius, alpha, now)
-            }
-            if (activeEffects.reticle) {
-              drawReticleCorners(ctx, pos.x, pos.y, radius, alpha)
-            }
+        if (activeStyle.showRing) {
+          if (activeEffects.scan) {
+            drawScan(ctx, pos.x, pos.y, radius, alpha, now)
           }
-
-          if (activeEffects.vignette) {
-            drawGlow(ctx, pos.x, pos.y, radius, alpha)
+          if (activeEffects.reticle) {
+            drawReticleCorners(ctx, pos.x, pos.y, radius, alpha)
           }
         }
+
+        if (activeEffects.vignette) {
+          drawGlow(ctx, pos.x, pos.y, radius, alpha)
+        }
+
+        hasPainted = true
       }
 
       rafId = requestAnimationFrame(draw)

@@ -8,8 +8,10 @@ import {
   type DetectorStatus,
 } from '../services/FaceDetectorService'
 import { TrackingEngine } from '../services/TrackingEngine'
+import { FpsTracker } from '../utils/fps'
 
 const INIT_BACKOFF_MS = 2000
+const FPS_UPDATE_INTERVAL_MS = 1000
 
 export interface HeadTrackingResult {
   status: DetectorStatus
@@ -17,6 +19,7 @@ export interface HeadTrackingResult {
   targetRef: RefObject<TrackedTarget>
   detected: boolean
   locked: boolean
+  fps: number
 }
 
 export function useHeadTracking(
@@ -32,9 +35,12 @@ export function useHeadTracking(
   const lastTimestamp = useRef(0)
   const lastDetected = useRef(false)
   const lastLocked = useRef(false)
+  const fpsTrackerRef = useRef(new FpsTracker())
+  const lastFpsUpdate = useRef(0)
   const [detected, setDetected] = useState(false)
   const [locked, setLocked] = useState(false)
   const [status, setStatus] = useState<DetectorStatus>('uninitialized')
+  const [fps, setFps] = useState(0)
   const activeRef = useRef(active)
 
   useEffect(() => {
@@ -78,8 +84,15 @@ export function useHeadTracking(
     const loop = () => {
       const video = videoRef.current
       const nowMs = performance.now()
+      const fpsNow = fpsTrackerRef.current.tick(nowMs)
+
+      if (nowMs - lastFpsUpdate.current >= FPS_UPDATE_INTERVAL_MS) {
+        lastFpsUpdate.current = nowMs
+        setFps(Math.round(fpsNow))
+      }
 
       if (
+        !document.hidden &&
         serviceRef.current.state.status === 'ready' &&
         video?.readyState === 4
       ) {
@@ -121,5 +134,5 @@ export function useHeadTracking(
     }
   }, [active, initialize, videoRef])
 
-  return { status, faceRef, targetRef, detected, locked }
+  return { status, faceRef, targetRef, detected, locked, fps }
 }

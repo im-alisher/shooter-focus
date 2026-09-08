@@ -3,7 +3,10 @@ import type { FaceData } from '../../types/face'
 import {
   computeCoverTransform,
   mapPointToView,
+  type CoverTransform,
 } from '../../utils/videoTransform'
+
+const MAX_DPR = 2
 
 interface DebugOverlayProps {
   faceRef: RefObject<FaceData>
@@ -31,13 +34,21 @@ export default function DebugOverlay({
     if (!ctx) return
 
     let rafId = 0
+    let hasPainted = false
+    let cachedSourceW = 0
+    let cachedSourceH = 0
+    let cachedW = 0
+    let cachedH = 0
+    let cachedTransform: CoverTransform | null = null
 
     const resize = () => {
-      const dpr = window.devicePixelRatio || 1
+      const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR)
       const { width, height } = canvas.getBoundingClientRect()
       canvas.width = Math.round(width * dpr)
       canvas.height = Math.round(height * dpr)
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+      cachedW = 0
+      cachedH = 0
     }
 
     resize()
@@ -48,37 +59,60 @@ export default function DebugOverlay({
       const face = faceRef.current
       const { width, height } = canvas.getBoundingClientRect()
       const video = videoRef.current
+      const box = face.detected ? face.box : null
 
-      ctx.clearRect(0, 0, width, height)
+      if (!(visibleRef.current && box && video)) {
+        if (hasPainted) {
+          ctx.clearRect(0, 0, width, height)
+          hasPainted = false
+        }
+        rafId = requestAnimationFrame(draw)
+        return
+      }
 
-      if (visibleRef.current && face.detected && face.box && video) {
-        const sourceWidth = video.videoWidth || 1280
-        const sourceHeight = video.videoHeight || 720
+      const sourceWidth = video.videoWidth || 1280
+      const sourceHeight = video.videoHeight || 720
 
-        const transform = computeCoverTransform(
+      if (
+        !cachedTransform ||
+        sourceWidth !== cachedSourceW ||
+        sourceHeight !== cachedSourceH ||
+        width !== cachedW ||
+        height !== cachedH
+      ) {
+        cachedSourceW = sourceWidth
+        cachedSourceH = sourceHeight
+        cachedW = width
+        cachedH = height
+        cachedTransform = computeCoverTransform(
           sourceWidth,
           sourceHeight,
           width,
           height,
         )
-
-        const origin = mapPointToView(face.box.x, face.box.y, transform)
-        const boxWidth = face.box.width * transform.scale
-        const boxHeight = face.box.height * transform.scale
-
-        ctx.strokeStyle = 'rgba(255, 80, 80, 0.9)'
-        ctx.lineWidth = 1.5
-        ctx.strokeRect(origin.x, origin.y, boxWidth, boxHeight)
-
-        ctx.fillStyle = 'rgba(255, 80, 80, 0.9)'
-        for (const point of face.landmarks ?? []) {
-          const mapped = mapPointToView(point.x, point.y, transform)
-          ctx.beginPath()
-          ctx.arc(mapped.x, mapped.y, 1.5, 0, Math.PI * 2)
-          ctx.fill()
-        }
       }
 
+      const transform = cachedTransform
+
+      ctx.clearRect(0, 0, width, height)
+
+      const origin = mapPointToView(box.x, box.y, transform)
+      const boxWidth = box.width * transform.scale
+      const boxHeight = box.height * transform.scale
+
+      ctx.strokeStyle = 'rgba(255, 80, 80, 0.9)'
+      ctx.lineWidth = 1.5
+      ctx.strokeRect(origin.x, origin.y, boxWidth, boxHeight)
+
+      ctx.fillStyle = 'rgba(255, 80, 80, 0.9)'
+      for (const point of face.landmarks ?? []) {
+        const mapped = mapPointToView(point.x, point.y, transform)
+        ctx.beginPath()
+        ctx.arc(mapped.x, mapped.y, 1.5, 0, Math.PI * 2)
+        ctx.fill()
+      }
+
+      hasPainted = true
       rafId = requestAnimationFrame(draw)
     }
 
