@@ -1,8 +1,23 @@
+import DebugOverlay from './components/DebugOverlay/DebugOverlay'
 import WebcamFeed from './components/WebcamFeed/WebcamFeed'
 import { useWebcam } from './hooks/useWebcam'
+import { useFaceDetection } from './hooks/useFaceDetection'
+
+const DETECTOR_LABEL: Record<string, string> = {
+  uninitialized: 'IDLE',
+  loading: 'LOADING MODEL',
+  ready: 'READY',
+  failed: 'ERROR',
+}
 
 function App() {
   const { videoRef, status, error, start } = useWebcam()
+  const cameraReady = status === 'ready'
+  const {
+    status: detectorStatus,
+    faceRef,
+    detected,
+  } = useFaceDetection(videoRef, cameraReady)
 
   return (
     <main className="flex h-full w-full items-center justify-center bg-hud-bg p-4">
@@ -13,11 +28,40 @@ function App() {
           error={error}
           onStart={start}
         />
+
+        <DebugOverlay
+          faceRef={faceRef}
+          videoRef={videoRef}
+          visible={cameraReady && detected}
+        />
+
         <header className="pointer-events-none absolute left-0 top-0 flex w-full items-center justify-between p-4">
-          <span className="font-mono text-xs font-semibold uppercase tracking-[0.3em] text-hud-primary">
-            Shooter Focus
-          </span>
-          <span className="h-2 w-2 rounded-full bg-hud-secondary shadow-[0_0_8px_2px_var(--color-hud-secondary)]" />
+          <div className="flex flex-col gap-1">
+            <span className="font-mono text-xs font-semibold uppercase tracking-[0.3em] text-hud-primary">
+              Shooter Focus
+            </span>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-white/40">
+              Detector:{' '}
+              <span
+                className={
+                  detectorStatus === 'ready'
+                    ? 'text-hud-accent'
+                    : detectorStatus === 'failed'
+                      ? 'text-hud-secondary'
+                      : 'text-white/60'
+                }
+              >
+                {DETECTOR_LABEL[detectorStatus]}
+              </span>
+            </span>
+          </div>
+          <span
+            className={`h-2 w-2 rounded-full ${
+              detected
+                ? 'bg-hud-accent shadow-[0_0_8px_2px_var(--color-hud-accent)]'
+                : 'bg-hud-secondary shadow-[0_0_8px_2px_var(--color-hud-secondary)]'
+            }`}
+          />
         </header>
       </div>
     </main>
