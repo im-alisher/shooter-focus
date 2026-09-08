@@ -3,7 +3,7 @@ import DebugOverlay from './components/DebugOverlay/DebugOverlay'
 import SettingsPanel from './components/SettingsPanel/SettingsPanel'
 import TargetLockOverlay from './components/TargetLockOverlay/TargetLockOverlay'
 import WebcamFeed from './components/WebcamFeed/WebcamFeed'
-import { useWebcam } from './hooks/useWebcam'
+import { useMediaSource, type MediaSourceMode } from './hooks/useMediaSource'
 import { useHeadTracking } from './hooks/useHeadTracking'
 import { useHudSettings } from './hooks/useHudSettings'
 import { settingsToStyle } from './types/hudSettings'
@@ -15,16 +15,23 @@ const DETECTOR_LABEL: Record<string, string> = {
   failed: 'ERROR',
 }
 
+const MODE_LABEL: Record<MediaSourceMode, string> = {
+  none: 'NO SOURCE',
+  camera: 'CAMERA',
+  file: 'VIDEO FILE',
+}
+
 function App() {
-  const { videoRef, status, error, start } = useWebcam()
-  const cameraReady = status === 'ready'
+  const { videoRef, mode, status, error, fileName, startCamera, uploadFile } =
+    useMediaSource()
+  const feedReady = status === 'ready'
   const {
     status: detectorStatus,
     faceRef,
     targetRef,
     locked,
     fps,
-  } = useHeadTracking(videoRef, cameraReady)
+  } = useHeadTracking(videoRef, feedReady)
   const { settings, update, updateEffects, reset } = useHudSettings()
   const [configOpen, setConfigOpen] = useState(false)
   const [mirror, setMirror] = useState(true)
@@ -34,23 +41,26 @@ function App() {
       <div className="relative h-[70vh] max-h-[720px] w-full max-w-5xl overflow-hidden rounded-lg border border-white/10 shadow-2xl shadow-black/60">
         <WebcamFeed
           videoRef={videoRef}
+          mode={mode}
           status={status}
           error={error}
-          onStart={start}
+          fileName={fileName}
+          onStart={startCamera}
+          onUpload={uploadFile}
           mirror={mirror}
         />
 
         <DebugOverlay
           faceRef={faceRef}
           videoRef={videoRef}
-          visible={cameraReady && locked}
+          visible={feedReady && locked}
           mirror={mirror}
         />
 
         <TargetLockOverlay
           targetRef={targetRef}
           videoRef={videoRef}
-          visible={cameraReady}
+          visible={feedReady}
           style={settingsToStyle(settings)}
           effects={settings.effects}
           mirror={mirror}
@@ -85,6 +95,10 @@ function App() {
               >
                 {DETECTOR_LABEL[detectorStatus]}
               </span>
+            </span>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-white/40">
+              Source:{' '}
+              <span className="text-hud-primary">{MODE_LABEL[mode]}</span>
             </span>
           </div>
           <div className="flex items-center gap-4">

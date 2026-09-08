@@ -32,7 +32,7 @@ export function useHeadTracking(
   const optionsRef = useRef<Partial<TrackingOptions>>(options)
   const faceRef = useRef<FaceData>(EMPTY_FACE)
   const targetRef = useRef<TrackedTarget>(EMPTY_TARGET)
-  const lastTimestamp = useRef(0)
+  const lastVideoTime = useRef(-1)
   const lastDetected = useRef(false)
   const lastLocked = useRef(false)
   const fpsTrackerRef = useRef(new FpsTracker())
@@ -96,21 +96,22 @@ export function useHeadTracking(
         serviceRef.current.state.status === 'ready' &&
         video?.readyState === 4
       ) {
-        const timestampMs = video.currentTime * 1000
-        if (timestampMs > lastTimestamp.current) {
+        const videoTime = video.currentTime
+        if (videoTime !== lastVideoTime.current) {
+          lastVideoTime.current = videoTime
+          const detectTimestamp = performance.now()
           try {
             faceRef.current = serviceRef.current.detectForVideo(
               video,
-              timestampMs,
+              detectTimestamp,
             )
-            lastTimestamp.current = timestampMs
 
             if (faceRef.current.detected !== lastDetected.current) {
               lastDetected.current = faceRef.current.detected
               setDetected(faceRef.current.detected)
             }
           } catch {
-            faceRef.current = { ...EMPTY_FACE, timestamp: timestampMs }
+            faceRef.current = { ...EMPTY_FACE, timestamp: detectTimestamp }
           }
         }
       }

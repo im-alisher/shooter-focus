@@ -1,7 +1,7 @@
 export type WebcamStatus = 'idle' | 'permission' | 'ready' | 'error'
 
 export type WebcamErrorName =
-  'not-allowed' | 'not-found' | 'unavailable' | 'unknown'
+  'not-allowed' | 'not-found' | 'unavailable' | 'unsupported' | 'unknown'
 
 export interface WebcamError {
   name: WebcamErrorName

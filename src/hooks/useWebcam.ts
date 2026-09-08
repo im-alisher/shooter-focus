@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import type { WebcamError, WebcamStatus } from '../types/webcam'
 import type { CameraSettings } from '../types/webcam'
 
@@ -47,8 +47,12 @@ function mapError(error: unknown): WebcamError {
   }
 }
 
-export function useWebcam(settings: CameraSettings = DEFAULT_SETTINGS) {
-  const videoRef = useRef<HTMLVideoElement>(null)
+export function useWebcam(
+  settings: CameraSettings = DEFAULT_SETTINGS,
+  externalVideoRef?: RefObject<HTMLVideoElement | null>,
+) {
+  const internalVideoRef = useRef<HTMLVideoElement>(null)
+  const videoRef = externalVideoRef ?? internalVideoRef
   const streamRef = useRef<MediaStream | null>(null)
   const [status, setStatus] = useState<WebcamStatus>('idle')
   const [error, setError] = useState<WebcamError | null>(null)
@@ -77,6 +81,7 @@ export function useWebcam(settings: CameraSettings = DEFAULT_SETTINGS) {
 
       const video = videoRef.current
       if (video) {
+        video.removeAttribute('src')
         video.srcObject = stream
         video.setAttribute('playsinline', 'true')
         await video.play()
@@ -88,7 +93,7 @@ export function useWebcam(settings: CameraSettings = DEFAULT_SETTINGS) {
       setError(mapError(caught))
       setStatus('error')
     }
-  }, [settings, stopStream])
+  }, [settings, stopStream, videoRef])
 
   const stop = useCallback(() => {
     stopStream()
