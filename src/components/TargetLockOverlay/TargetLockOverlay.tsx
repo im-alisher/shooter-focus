@@ -1,7 +1,7 @@
 import { useEffect, useRef, type RefObject } from 'react'
 import type { TrackedTarget } from '../../types/tracking'
-import type { TargetLockStyle } from '../../types/hud'
-import { DEFAULT_TARGET_LOCK_STYLE } from '../../types/hud'
+import type { HudEffects, TargetLockStyle } from '../../types/hud'
+import { DEFAULT_HUD_EFFECTS, DEFAULT_TARGET_LOCK_STYLE } from '../../types/hud'
 import {
   computeCoverTransform,
   mapPointToView,
@@ -13,6 +13,7 @@ interface TargetLockOverlayProps {
   videoRef: RefObject<HTMLVideoElement | null>
   visible: boolean
   style?: TargetLockStyle
+  effects?: HudEffects
 }
 
 const ARC_SWEEP = (Math.PI * 2) / 4
@@ -23,6 +24,8 @@ const ARC_CENTERS = [
   (7 * Math.PI) / 4,
 ]
 const TICK_SPACING = 0.06
+const SCAN_PERIOD_MS = 1400
+const SCAN_TRAIL_STEPS = 6
 
 function drawQuadrantArcs(
   ctx: CanvasRenderingContext2D,
@@ -113,6 +116,112 @@ function drawCenterDot(
   ctx.restore()
 }
 
+function drawScan(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  radius: number,
+  alpha: number,
+  now: number,
+) {
+  const scanRadius = radius * 0.8
+  const sweepAngle = ((now % SCAN_PERIOD_MS) / SCAN_PERIOD_MS) * Math.PI * 2
+  const step = 0.05
+
+  ctx.save()
+  ctx.globalAlpha = alpha
+  ctx.lineCap = 'round'
+
+  for (let i = SCAN_TRAIL_STEPS; i >= 0; i -= 1) {
+    const angle = sweepAngle - i * step
+    const trailAlpha = 0.16 * (1 - i / (SCAN_TRAIL_STEPS + 1))
+
+    ctx.strokeStyle = 'currentColor'
+    ctx.globalAlpha = alpha * trailAlpha
+    ctx.lineWidth = 1.5
+
+    ctx.beginPath()
+    ctx.moveTo(x, y)
+    ctx.lineTo(
+      x + Math.cos(angle) * scanRadius,
+      y + Math.sin(angle) * scanRadius,
+    )
+    ctx.stroke()
+
+    ctx.beginPath()
+    ctx.arc(
+      x + Math.cos(angle) * scanRadius,
+      y + Math.sin(angle) * scanRadius,
+      Math.max(1.5, radius * 0.015),
+      0,
+      Math.PI * 2,
+    )
+    ctx.fillStyle = 'currentColor'
+    ctx.fill()
+  }
+
+  ctx.restore()
+}
+
+function drawReticleCorners(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  radius: number,
+  alpha: number,
+) {
+  const outer = radius + radius * 0.18
+  const arm = radius * 0.16
+
+  ctx.save()
+  ctx.strokeStyle = 'currentColor'
+  ctx.globalAlpha = alpha * 0.8
+  ctx.lineWidth = Math.max(1.5, radius * 0.025)
+  ctx.lineCap = 'round'
+
+  for (const angle of [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2]) {
+    const dirX = Math.cos(angle)
+    const dirY = Math.sin(angle)
+    const perpX = -dirY
+    const perpY = dirX
+
+    const cx = x + dirX * outer
+    const cy = y + dirY * outer
+
+    ctx.beginPath()
+    ctx.moveTo(cx + dirX * arm, cy + dirY * arm)
+    ctx.lineTo(cx - dirX * arm * 0.4, cy - dirY * arm * 0.4)
+    ctx.stroke()
+
+    ctx.beginPath()
+    ctx.moveTo(cx + perpX * arm * 0.6, cy + perpY * arm * 0.6)
+    ctx.lineTo(cx - perpX * arm * 0.6, cy - perpY * arm * 0.6)
+    ctx.stroke()
+  }
+
+  ctx.restore()
+}
+
+function drawGlow(
+  ctx: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  radius: number,
+  alpha: number,
+) {
+  const glowRadius = radius * 2.1
+  const gradient = ctx.createRadialGradient(x, y, radius, x, y, glowRadius)
+
+  ctx.save()
+  gradient.addColorStop(0, `rgba(255, 255, 255, ${alpha * 0.06})`)
+  gradient.addColorStop(1, 'rgba(255, 255, 255, 0)')
+  ctx.fillStyle = gradient
+  ctx.beginPath()
+  ctx.arc(x, y, glowRadius, 0, Math.PI * 2)
+  ctx.fill()
+  ctx.restore()
+}
+
 function drawLockOverlay(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -142,9 +251,11 @@ export default function TargetLockOverlay({
   videoRef,
   visible,
   style = DEFAULT_TARGET_LOCK_STYLE,
+  effects = DEFAULT_HUD_EFFECTS,
 }: TargetLockOverlayProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const styleRef = useRef(style)
+  const effectsRef = useRef(effects)
   const visibleRef = useRef(visible)
   const lockProgress = useRef(0)
   const lastFrameTime = useRef(0)
@@ -153,6 +264,10 @@ export default function TargetLockOverlay({
   useEffect(() => {
     styleRef.current = style
   }, [style])
+
+  useEffect(() => {
+    effectsRef.current = effects
+  }, [effects])
 
   useEffect(() => {
     visibleRef.current = visible
@@ -188,6 +303,7 @@ export default function TargetLockOverlay({
       const { width, height } = canvas.getBoundingClientRect()
       const video = videoRef.current
       const activeStyle = styleRef.current
+      const activeEffects = effectsRef.current
 
       ctx.clearRect(0, 0, width, height)
 
@@ -226,7 +342,10 @@ export default function TargetLockOverlay({
 
         const progress = lockProgress.current
         const scale = 1.4 - 0.4 * progress
-        const radius = Math.max(baseRadius * scale, 18)
+        const pulseFactor = activeEffects.pulse
+          ? 1 + 0.035 * Math.sin(now / 260)
+          : 1
+        const radius = Math.max(baseRadius * scale * pulseFactor, 18)
 
         let alpha = progress
         if (target.lost && shouldTrack) {
@@ -243,6 +362,19 @@ export default function TargetLockOverlay({
             activeStyle.color,
             activeStyle,
           )
+
+          if (activeStyle.showRing) {
+            if (activeEffects.scan) {
+              drawScan(ctx, pos.x, pos.y, radius, alpha, now)
+            }
+            if (activeEffects.reticle) {
+              drawReticleCorners(ctx, pos.x, pos.y, radius, alpha)
+            }
+          }
+
+          if (activeEffects.vignette) {
+            drawGlow(ctx, pos.x, pos.y, radius, alpha)
+          }
         }
       }
 

@@ -13,3 +13,17 @@ export const DEFAULT_TARGET_LOCK_STYLE: TargetLockStyle = {
   showCenterDot: true,
   showLockAnimation: true,
 }
+
+export interface HudEffects {
+  pulse: boolean
+  scan: boolean
+  reticle: boolean
+  vignette: boolean
+}
+
+export const DEFAULT_HUD_EFFECTS: HudEffects = {
+  pulse: true,
+  scan: true,
+  reticle: true,
+  vignette: true,
+}
