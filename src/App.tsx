@@ -1,4 +1,5 @@
 import DebugOverlay from './components/DebugOverlay/DebugOverlay'
+import TargetLockOverlay from './components/TargetLockOverlay/TargetLockOverlay'
 import WebcamFeed from './components/WebcamFeed/WebcamFeed'
 import { useWebcam } from './hooks/useWebcam'
 import { useHeadTracking } from './hooks/useHeadTracking'
@@ -16,6 +17,7 @@ function App() {
   const {
     status: detectorStatus,
     faceRef,
+    targetRef,
     locked,
   } = useHeadTracking(videoRef, cameraReady)
 
@@ -33,6 +35,12 @@ function App() {
           faceRef={faceRef}
           videoRef={videoRef}
           visible={cameraReady && locked}
+        />
+
+        <TargetLockOverlay
+          targetRef={targetRef}
+          videoRef={videoRef}
+          visible={cameraReady}
         />
 
         <header className="pointer-events-none absolute left-0 top-0 flex w-full items-center justify-between p-4">
