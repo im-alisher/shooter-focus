@@ -7,6 +7,7 @@ export interface HudSettings {
   showRing: boolean
   showCenterDot: boolean
   showLockAnimation: boolean
+  showDebugBox: boolean
   effects: HudEffects
 }
 
@@ -16,6 +17,7 @@ export const DEFAULT_HUD_SETTINGS: HudSettings = {
   showRing: true,
   showCenterDot: true,
   showLockAnimation: true,
+  showDebugBox: true,
   effects: { ...DEFAULT_HUD_EFFECTS },
 }
 

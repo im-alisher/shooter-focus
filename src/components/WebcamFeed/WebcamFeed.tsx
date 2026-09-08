@@ -66,7 +66,7 @@ function FeedPrompt({
 
   return (
     <div className="flex flex-col items-center gap-4 p-6 text-center">
-      <span className="font-mono text-sm uppercase tracking-widest text-hud-primary">
+      <span className="bg-gradient-to-r from-cyan-200 via-hud-primary to-hud-secondary bg-clip-text font-mono text-xl font-bold uppercase tracking-[0.3em] text-transparent drop-shadow-[0_0_12px_rgba(0,255,213,0.5)]">
         {status === 'loading' ? 'Loading Source...' : 'Shooter Focus'}
       </span>
       <p className="max-w-xs text-sm text-white/70">

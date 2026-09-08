@@ -11,6 +11,7 @@ interface SettingsPanelProps {
   onToggle: () => void
   onUpdateStyle: (patch: Partial<TargetLockStyle>) => void
   onUpdateEffects: (patch: Partial<HudEffects>) => void
+  onUpdateSettings: (patch: Partial<HudSettings>) => void
   onToggleMirror: () => void
   onReset: () => void
 }
@@ -22,6 +23,7 @@ export default function SettingsPanel({
   onToggle,
   onUpdateStyle,
   onUpdateEffects,
+  onUpdateSettings,
   onToggleMirror,
   onReset,
 }: SettingsPanelProps) {
@@ -98,6 +100,11 @@ export default function SettingsPanel({
             checked={settings.showCenterDot}
             onChange={(showCenterDot) => onUpdateStyle({ showCenterDot })}
           />
+          <Toggle
+            label="Debug Box"
+            checked={settings.showDebugBox}
+            onChange={(showDebugBox) => onUpdateSettings({ showDebugBox })}
+          />{' '}
           <Toggle
             label="Lock Animation"
             checked={settings.showLockAnimation}

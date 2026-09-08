@@ -53,7 +53,7 @@ function App() {
         <DebugOverlay
           faceRef={faceRef}
           videoRef={videoRef}
-          visible={feedReady && locked}
+          visible={feedReady && locked && settings.showDebugBox}
           mirror={mirror}
         />
 
@@ -73,13 +73,14 @@ function App() {
           onToggle={() => setConfigOpen((value) => !value)}
           onUpdateStyle={update}
           onUpdateEffects={updateEffects}
+          onUpdateSettings={update}
           onToggleMirror={() => setMirror((value) => !value)}
           onReset={reset}
         />
 
         <header className="pointer-events-none absolute left-0 top-0 flex w-full items-center justify-between p-4">
           <div className="flex flex-col gap-1">
-            <span className="font-mono text-xs font-semibold uppercase tracking-[0.3em] text-hud-primary">
+            <span className="bg-gradient-to-r from-cyan-200 via-hud-primary to-hud-secondary bg-clip-text font-mono text-sm font-bold uppercase tracking-[0.3em] text-transparent drop-shadow-[0_0_10px_rgba(0,255,213,0.45)]">
               Shooter Focus
             </span>
             <span className="font-mono text-[10px] uppercase tracking-widest text-white/40">
