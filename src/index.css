@@ -1,0 +1,27 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-hud-primary: #00ffd5;
+  --color-hud-secondary: #ff3bd5;
+  --color-hud-accent: #7bff3b;
+  --color-hud-bg: #05070c;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background-color: var(--color-hud-bg);
+  color: #e6f7f2;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
