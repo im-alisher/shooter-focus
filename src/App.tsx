@@ -1,8 +1,12 @@
+import { useState } from 'react'
 import DebugOverlay from './components/DebugOverlay/DebugOverlay'
+import SettingsPanel from './components/SettingsPanel/SettingsPanel'
 import TargetLockOverlay from './components/TargetLockOverlay/TargetLockOverlay'
 import WebcamFeed from './components/WebcamFeed/WebcamFeed'
 import { useWebcam } from './hooks/useWebcam'
 import { useHeadTracking } from './hooks/useHeadTracking'
+import { useHudSettings } from './hooks/useHudSettings'
+import { settingsToStyle } from './types/hudSettings'
 
 const DETECTOR_LABEL: Record<string, string> = {
   uninitialized: 'IDLE',
@@ -21,6 +25,8 @@ function App() {
     locked,
     fps,
   } = useHeadTracking(videoRef, cameraReady)
+  const { settings, update, updateEffects, reset } = useHudSettings()
+  const [configOpen, setConfigOpen] = useState(false)
 
   return (
     <main className="flex h-full w-full items-center justify-center bg-hud-bg p-4">
@@ -42,6 +48,17 @@ function App() {
           targetRef={targetRef}
           videoRef={videoRef}
           visible={cameraReady}
+          style={settingsToStyle(settings)}
+          effects={settings.effects}
+        />
+
+        <SettingsPanel
+          open={configOpen}
+          settings={settings}
+          onToggle={() => setConfigOpen((value) => !value)}
+          onUpdateStyle={update}
+          onUpdateEffects={updateEffects}
+          onReset={reset}
         />
 
         <header className="pointer-events-none absolute left-0 top-0 flex w-full items-center justify-between p-4">
