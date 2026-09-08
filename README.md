@@ -13,6 +13,7 @@ A real-time AI-powered head tracking application that displays a futuristic gami
 ## Features
 
 - **Real-time face detection** via MediaPipe Face Detection (blaze_face_short_range model, loaded from CDN)
+- **Live webcam OR video file tracking** — upload any local video (.mp4/.webm/.mov) and the HUD locks onto faces/characters in it
 - **Jitter-free head tracking** using a One-Euro filter pipeline with configurable smoothing parameters
 - **Target lock overlay** — segmented quadrant arcs, inner dashed ring, crosshair + center dot
 - **HUD effects** — pulsing ring, radar scan animation, cardinal reticle brackets, soft glow
