@@ -19,13 +19,13 @@ npm run dev
 
 ## Scripts
 
-| Command              | Description                        |
-| -------------------- | ---------------------------------- |
-| `npm run dev`        | Start the Vite dev server          |
-| `npm run build`      | Type-check and build for production |
-| `npm run lint`       | Lint with ESLint                   |
-| `npm run format`     | Format with Prettier               |
-| `npm run preview`    | Preview the production build       |
+| Command           | Description                         |
+| ----------------- | ----------------------------------- |
+| `npm run dev`     | Start the Vite dev server           |
+| `npm run build`   | Type-check and build for production |
+| `npm run lint`    | Lint with ESLint                    |
+| `npm run format`  | Format with Prettier                |
+| `npm run preview` | Preview the production build        |
 
 ## License
 
