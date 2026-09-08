@@ -59,14 +59,14 @@ npm run preview
 
 ## Scripts
 
-| Command             | Description                                         |
-| ------------------- | --------------------------------------------------- |
-| `npm run dev`       | Start the Vite dev server with HMR                  |
-| `npm run build`     | Type-check (`tsc -b`) and produce a production build |
-| `npm run lint`      | Lint all source files with ESLint                    |
-| `npm run format`    | Auto-format source files with Prettier               |
-| `npm run format:check` | Verify formatting (CI-ready)                       |
-| `npm run preview`   | Serve the production build locally                   |
+| Command                | Description                                          |
+| ---------------------- | ---------------------------------------------------- |
+| `npm run dev`          | Start the Vite dev server with HMR                   |
+| `npm run build`        | Type-check (`tsc -b`) and produce a production build |
+| `npm run lint`         | Lint all source files with ESLint                    |
+| `npm run format`       | Auto-format source files with Prettier               |
+| `npm run format:check` | Verify formatting (CI-ready)                         |
+| `npm run preview`      | Serve the production build locally                   |
 
 ---
 
@@ -130,26 +130,26 @@ getUserMedia ──► <video> ──► useHeadTracking rAF loop
 
 ### Key decisions
 
-| Decision | Rationale |
-|----------|-----------|
-| MediaPipe tasks-vision (CDN) | Zero-install, WebAssembly, GPU/CPU fallback, officially maintained |
-| One-Euro filter | Industry-standard for low-latency, frequency-adaptive smoothing; no motion prediction needed |
-| Mutable refs + canvas rAF | Avoids React re-renders at tracking frame-rate; overlays draw at display refresh independently of React |
-| DPR capped at 2 | Halves canvas memory vs. retina without visible quality loss |
-| Loss persistence (400 ms) | Target remains during brief blink or fast motion, preventing flickering |
+| Decision                     | Rationale                                                                                               |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------- |
+| MediaPipe tasks-vision (CDN) | Zero-install, WebAssembly, GPU/CPU fallback, officially maintained                                      |
+| One-Euro filter              | Industry-standard for low-latency, frequency-adaptive smoothing; no motion prediction needed            |
+| Mutable refs + canvas rAF    | Avoids React re-renders at tracking frame-rate; overlays draw at display refresh independently of React |
+| DPR capped at 2              | Halves canvas memory vs. retina without visible quality loss                                            |
+| Loss persistence (400 ms)    | Target remains during brief blink or fast motion, preventing flickering                                 |
 
 ---
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | React 19 + TypeScript 6 |
-| Build | Vite 8 |
-| CV | MediaPipe tasks-vision 1.0.1 (`FaceDetector`, `FilesetResolver`) |
-| Styling | Tailwind CSS 4 |
-| Linting | ESLint + typescript-eslint |
-| Formatting | Prettier |
+| Layer      | Technology                                                       |
+| ---------- | ---------------------------------------------------------------- |
+| Framework  | React 19 + TypeScript 6                                          |
+| Build      | Vite 8                                                           |
+| CV         | MediaPipe tasks-vision 1.0.1 (`FaceDetector`, `FilesetResolver`) |
+| Styling    | Tailwind CSS 4                                                   |
+| Linting    | ESLint + typescript-eslint                                       |
+| Formatting | Prettier                                                         |
 
 ---
 
@@ -159,12 +159,12 @@ getUserMedia ──► <video> ──► useHeadTracking rAF loop
 
 Defaults in `src/types/tracking.ts`:
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `minCutoff` | 1.2 | One-Euro low-pass frequency cutoff (Hz) for position |
-| `beta` | 0.4 | One-Euro speed coefficient (higher = less lag on fast movement) |
-| `sizeMinCutoff` | 0.6 | Low-pass cutoff for circle radius |
-| `lossTimeoutMs` | 400 | Duration (ms) to hold target after face is lost |
+| Parameter       | Default | Description                                                     |
+| --------------- | ------- | --------------------------------------------------------------- |
+| `minCutoff`     | 1.2     | One-Euro low-pass frequency cutoff (Hz) for position            |
+| `beta`          | 0.4     | One-Euro speed coefficient (higher = less lag on fast movement) |
+| `sizeMinCutoff` | 0.6     | Low-pass cutoff for circle radius                               |
+| `lossTimeoutMs` | 400     | Duration (ms) to hold target after face is lost                 |
 
 ### HUD colors
 
