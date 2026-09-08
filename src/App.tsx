@@ -1,7 +1,7 @@
 import DebugOverlay from './components/DebugOverlay/DebugOverlay'
 import WebcamFeed from './components/WebcamFeed/WebcamFeed'
 import { useWebcam } from './hooks/useWebcam'
-import { useFaceDetection } from './hooks/useFaceDetection'
+import { useHeadTracking } from './hooks/useHeadTracking'
 
 const DETECTOR_LABEL: Record<string, string> = {
   uninitialized: 'IDLE',
@@ -16,8 +16,8 @@ function App() {
   const {
     status: detectorStatus,
     faceRef,
-    detected,
-  } = useFaceDetection(videoRef, cameraReady)
+    locked,
+  } = useHeadTracking(videoRef, cameraReady)
 
   return (
     <main className="flex h-full w-full items-center justify-center bg-hud-bg p-4">
@@ -32,7 +32,7 @@ function App() {
         <DebugOverlay
           faceRef={faceRef}
           videoRef={videoRef}
-          visible={cameraReady && detected}
+          visible={cameraReady && locked}
         />
 
         <header className="pointer-events-none absolute left-0 top-0 flex w-full items-center justify-between p-4">
@@ -57,7 +57,7 @@ function App() {
           </div>
           <span
             className={`h-2 w-2 rounded-full ${
-              detected
+              locked
                 ? 'bg-hud-accent shadow-[0_0_8px_2px_var(--color-hud-accent)]'
                 : 'bg-hud-secondary shadow-[0_0_8px_2px_var(--color-hud-secondary)]'
             }`}

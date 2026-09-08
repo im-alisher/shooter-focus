@@ -1,28 +1,39 @@
 import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
 import type { FaceData } from '../types/face'
 import { EMPTY_FACE } from '../types/face'
+import type { TrackedTarget, TrackingOptions } from '../types/tracking'
+import { EMPTY_TARGET } from '../types/tracking'
 import {
   FaceDetectorService,
   type DetectorStatus,
 } from '../services/FaceDetectorService'
+import { TrackingEngine } from '../services/TrackingEngine'
 
 const INIT_BACKOFF_MS = 2000
 
-export interface FaceDetectionResult {
+export interface HeadTrackingResult {
   status: DetectorStatus
   faceRef: RefObject<FaceData>
+  targetRef: RefObject<TrackedTarget>
   detected: boolean
+  locked: boolean
 }
 
-export function useFaceDetection(
+export function useHeadTracking(
   videoRef: RefObject<HTMLVideoElement | null>,
   active: boolean,
-): FaceDetectionResult {
+  options?: Partial<TrackingOptions>,
+): HeadTrackingResult {
   const serviceRef = useRef(FaceDetectorService.getInstance())
+  const engineRef = useRef<TrackingEngine | null>(null)
+  const optionsRef = useRef<Partial<TrackingOptions>>(options)
   const faceRef = useRef<FaceData>(EMPTY_FACE)
+  const targetRef = useRef<TrackedTarget>(EMPTY_TARGET)
   const lastTimestamp = useRef(0)
   const lastDetected = useRef(false)
+  const lastLocked = useRef(false)
   const [detected, setDetected] = useState(false)
+  const [locked, setLocked] = useState(false)
   const [status, setStatus] = useState<DetectorStatus>('uninitialized')
   const activeRef = useRef(active)
 
@@ -30,10 +41,16 @@ export function useFaceDetection(
     activeRef.current = active
   }, [active])
 
+  useEffect(() => {
+    optionsRef.current = options
+    engineRef.current?.setOptions(options ?? {})
+  }, [options])
+
   const initialize = useCallback(async () => {
     setStatus('loading')
     try {
       await serviceRef.current.initialize()
+      engineRef.current = new TrackingEngine(optionsRef.current)
       setStatus('ready')
     } catch {
       setStatus('failed')
@@ -60,6 +77,7 @@ export function useFaceDetection(
 
     const loop = () => {
       const video = videoRef.current
+      const nowMs = performance.now()
 
       if (
         serviceRef.current.state.status === 'ready' &&
@@ -84,6 +102,14 @@ export function useFaceDetection(
         }
       }
 
+      if (engineRef.current) {
+        targetRef.current = engineRef.current.update(faceRef.current, nowMs)
+        if (targetRef.current.locked !== lastLocked.current) {
+          lastLocked.current = targetRef.current.locked
+          setLocked(targetRef.current.locked)
+        }
+      }
+
       rafId = requestAnimationFrame(loop)
     }
 
@@ -95,5 +121,5 @@ export function useFaceDetection(
     }
   }, [active, initialize, videoRef])
 
-  return { status, faceRef, detected }
+  return { status, faceRef, targetRef, detected, locked }
 }
