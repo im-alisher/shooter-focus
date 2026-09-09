@@ -38,7 +38,6 @@ function drawQuadrantArcs(
   alpha: number,
 ) {
   ctx.save()
-  ctx.strokeStyle = 'currentColor'
   ctx.globalAlpha = alpha
   ctx.lineWidth = Math.max(2, radius * 0.045)
   ctx.lineCap = 'round'
@@ -76,7 +75,6 @@ function drawInnerRing(
   alpha: number,
 ) {
   ctx.save()
-  ctx.strokeStyle = 'currentColor'
   ctx.globalAlpha = alpha * 0.55
   ctx.lineWidth = 1
   ctx.setLineDash([radius * 0.14, radius * 0.12])
@@ -97,8 +95,6 @@ function drawCenterDot(
   const crossLength = radius * 0.24
 
   ctx.save()
-  ctx.fillStyle = 'currentColor'
-  ctx.strokeStyle = 'currentColor'
   ctx.globalAlpha = alpha
   ctx.lineWidth = 1.5
 
@@ -139,7 +135,6 @@ function drawScan(
     const angle = sweepAngle - i * step
     const trailAlpha = 0.16 * (1 - i / (SCAN_TRAIL_STEPS + 1))
 
-    ctx.strokeStyle = 'currentColor'
     ctx.globalAlpha = alpha * trailAlpha
     ctx.lineWidth = 1.5
 
@@ -159,7 +154,6 @@ function drawScan(
       0,
       Math.PI * 2,
     )
-    ctx.fillStyle = 'currentColor'
     ctx.fill()
   }
 
@@ -177,7 +171,6 @@ function drawReticleCorners(
   const arm = radius * 0.16
 
   ctx.save()
-  ctx.strokeStyle = 'currentColor'
   ctx.globalAlpha = alpha * 0.8
   ctx.lineWidth = Math.max(1.5, radius * 0.025)
   ctx.lineCap = 'round'
@@ -400,6 +393,8 @@ export default function TargetLockOverlay({
       }
 
       if (alpha > 0.01) {
+        ctx.strokeStyle = activeStyle.color
+        ctx.fillStyle = activeStyle.color
         drawLockOverlay(
           ctx,
           pos.x,
