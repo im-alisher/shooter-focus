@@ -6,7 +6,7 @@ A real-time AI-powered head tracking application that displays a futuristic gami
 
 ## Screenshots
 
-> _Placeholder — add screenshots here after first visual build._
+![Shooter Focus HUD](src/assets/Shooter-Focus-09-09-2026_02_06_PM.png)
 
 ---
 
