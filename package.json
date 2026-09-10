@@ -1,7 +1,14 @@
 {
   "name": "shooter-focus",
-  "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/im-alisher/shooter-focus.git"
+  },
+  "engines": {
+    "node": ">=18"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
