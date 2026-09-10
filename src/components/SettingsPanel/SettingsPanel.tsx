@@ -84,6 +84,16 @@ export default function SettingsPanel({
           </div>
         </Section>
 
+        <Section title="Detection">
+          <Toggle
+            label="Wide Range"
+            checked={settings.detectionMode === 'full'}
+            onChange={(wide) =>
+              onUpdateSettings({ detectionMode: wide ? 'full' : 'short' })
+            }
+          />
+        </Section>
+
         <Section title="Overlay">
           <Toggle
             label="Mirror View"

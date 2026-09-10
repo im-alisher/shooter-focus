@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react'
+import { useEffect, useRef, useState, type RefObject } from 'react'
 import type { FaceData } from '../types/face'
 import { EMPTY_FACE } from '../types/face'
 import type { TrackedTarget, TrackingOptions } from '../types/tracking'
@@ -41,45 +41,46 @@ export function useHeadTracking(
   const [locked, setLocked] = useState(false)
   const [status, setStatus] = useState<DetectorStatus>('uninitialized')
   const [fps, setFps] = useState(0)
-  const activeRef = useRef(active)
-
-  useEffect(() => {
-    activeRef.current = active
-  }, [active])
-
   useEffect(() => {
     optionsRef.current = options
     engineRef.current?.setOptions(options ?? {})
   }, [options])
 
-  const initialize = useCallback(async () => {
-    setStatus('loading')
-    try {
-      await serviceRef.current.initialize()
-      engineRef.current = new TrackingEngine(optionsRef.current)
-      setStatus('ready')
-    } catch {
-      setStatus('failed')
-    }
-  }, [])
-
   useEffect(() => {
     if (!active) return
 
     let rafId = 0
+    let retryId: number | undefined
     let attempts = 0
     let disposed = false
+    const model = options?.detectionMode ?? 'short'
 
-    const ensureReady = () => {
+    faceRef.current = EMPTY_FACE
+    targetRef.current = EMPTY_TARGET
+    lastVideoTime.current = -1
+    engineRef.current = null
+
+    const ensureReady = async () => {
       if (disposed) return
-      initialize().catch(() => {
+      setStatus('loading')
+      try {
+        await serviceRef.current.setModel(model)
+        if (disposed) return
+        engineRef.current = new TrackingEngine(optionsRef.current)
+        setStatus('ready')
+      } catch (error) {
+        if (disposed) return
+        setStatus('failed')
+        console.error('Face detector initialization failed:', error)
         attempts += 1
         if (attempts < 3) {
-          window.setTimeout(ensureReady, INIT_BACKOFF_MS * attempts)
+          retryId = window.setTimeout(() => {
+            void ensureReady()
+          }, INIT_BACKOFF_MS * attempts)
         }
-      })
+      }
     }
-    ensureReady()
+    void ensureReady()
 
     const loop = () => {
       const video = videoRef.current
@@ -131,9 +132,10 @@ export function useHeadTracking(
 
     return () => {
       disposed = true
+      window.clearTimeout(retryId)
       cancelAnimationFrame(rafId)
     }
-  }, [active, initialize, videoRef])
+  }, [active, options?.detectionMode, videoRef])
 
   return { status, faceRef, targetRef, detected, locked, fps }
 }

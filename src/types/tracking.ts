@@ -9,11 +9,14 @@ export interface TrackedTarget {
   lastUpdate: number
 }
 
+export type DetectorModel = 'short' | 'full'
+
 export interface TrackingOptions {
   minCutoff: number
   beta: number
   sizeMinCutoff: number
   lossTimeoutMs: number
+  detectionMode: DetectorModel
 }
 
 export const EMPTY_TARGET: TrackedTarget = {
@@ -32,4 +35,5 @@ export const DEFAULT_TRACKING_OPTIONS: TrackingOptions = {
   beta: 0.4,
   sizeMinCutoff: 0.6,
   lossTimeoutMs: 400,
+  detectionMode: 'short',
 }

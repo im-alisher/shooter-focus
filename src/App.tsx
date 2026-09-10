@@ -25,16 +25,18 @@ function App() {
   const { videoRef, mode, status, error, fileName, startCamera, uploadFile } =
     useMediaSource()
   const feedReady = status === 'ready'
+  const { settings, update, updateEffects, reset } = useHudSettings()
+  const [configOpen, setConfigOpen] = useState(false)
+  const [mirror, setMirror] = useState(true)
   const {
     status: detectorStatus,
     faceRef,
     targetRef,
     locked,
     fps,
-  } = useHeadTracking(videoRef, feedReady)
-  const { settings, update, updateEffects, reset } = useHudSettings()
-  const [configOpen, setConfigOpen] = useState(false)
-  const [mirror, setMirror] = useState(true)
+  } = useHeadTracking(videoRef, feedReady, {
+    detectionMode: settings.detectionMode,
+  })
 
   return (
     <main className="flex h-full w-full items-center justify-center bg-hud-bg p-4">

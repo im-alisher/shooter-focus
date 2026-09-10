@@ -1,5 +1,6 @@
 import type { HudEffects } from './hud'
 import { DEFAULT_HUD_EFFECTS } from './hud'
+import type { DetectorModel } from './tracking'
 
 export interface HudSettings {
   color: string
@@ -8,6 +9,7 @@ export interface HudSettings {
   showCenterDot: boolean
   showLockAnimation: boolean
   showDebugBox: boolean
+  detectionMode: DetectorModel
   effects: HudEffects
 }
 
@@ -18,6 +20,7 @@ export const DEFAULT_HUD_SETTINGS: HudSettings = {
   showCenterDot: true,
   showLockAnimation: true,
   showDebugBox: false,
+  detectionMode: 'short',
   effects: { ...DEFAULT_HUD_EFFECTS },
 }
 
@@ -27,7 +30,8 @@ export const HUD_COLOR_PRESETS = [
   { name: 'Lime', value: '#7bff3b' },
   { name: 'Amber', value: '#ffb03b' },
   { name: 'Ice', value: '#5fd4ff' },
-  { name: 'Red', value: '#ff4b4b' },
+  { name: 'Coral', value: '#ff4b4b' },
+  { name: 'Red', value: '#8b0000' },
 ] as const
 
 export function settingsToStyle(settings: HudSettings) {

@@ -6,11 +6,16 @@ import {
 } from '@mediapipe/tasks-vision'
 import type { FaceData, Point } from '../types/face'
 import { EMPTY_FACE } from '../types/face'
+import type { DetectorModel } from '../types/tracking'
 
 const WASM_FILESET_URL =
   'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@1.0.1/wasm'
-const FACE_DETECTOR_MODEL_URL =
-  'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite'
+const FACE_DETECTOR_MODEL_URLS: Record<DetectorModel, string> = {
+  short:
+    'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite',
+  full: 'https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_full_range/float16/1/blaze_face_full_range.tflite',
+}
+const DEFAULT_DETECTOR_MODEL: DetectorModel = 'short'
 
 export type DetectorStatus = 'uninitialized' | 'loading' | 'ready' | 'failed'
 
@@ -55,6 +60,8 @@ export class FaceDetectorService {
   private detector: FaceDetector | null = null
   private initPromise: Promise<void> | null = null
   private error: string | null = null
+  private currentModel: DetectorModel = DEFAULT_DETECTOR_MODEL
+  private loadToken = 0
 
   static getInstance(): FaceDetectorService {
     if (!FaceDetectorService.instance) {
@@ -76,28 +83,50 @@ export class FaceDetectorService {
     return { status: 'uninitialized', error: null }
   }
 
-  async initialize(): Promise<void> {
-    if (this.detector) return
-    if (this.initPromise) return this.initPromise
+  get model(): DetectorModel {
+    return this.currentModel
+  }
+
+  setModel(model: DetectorModel): Promise<void> {
+    if (this.currentModel === model) {
+      if (this.detector) return Promise.resolve()
+      if (this.initPromise) return this.initPromise
+    }
+
+    const token = ++this.loadToken
+    this.detector?.close()
+    this.detector = null
+    this.initPromise = null
+    this.error = null
+    this.currentModel = model
 
     this.initPromise = (async () => {
       try {
         const fileset = await FilesetResolver.forVisionTasks(WASM_FILESET_URL)
-        this.detector = await FaceDetector.createFromOptions(fileset, {
+        const detector = await FaceDetector.createFromOptions(fileset, {
           baseOptions: {
-            modelAssetPath: FACE_DETECTOR_MODEL_URL,
+            modelAssetPath: FACE_DETECTOR_MODEL_URLS[model],
             delegate: 'CPU',
           },
           runningMode: 'VIDEO',
           minDetectionConfidence: 0.5,
         })
+        if (token !== this.loadToken) {
+          detector.close()
+          return
+        }
+        this.detector = detector
       } catch (error) {
+        if (token !== this.loadToken) return
         this.error =
           error instanceof Error
             ? error.message
             : 'Failed to initialize face detector'
-        this.initPromise = null
         throw new Error(this.error, { cause: error })
+      } finally {
+        if (token === this.loadToken) {
+          this.initPromise = null
+        }
       }
     })()
 
@@ -113,9 +142,11 @@ export class FaceDetectorService {
   }
 
   dispose(): void {
+    this.loadToken += 1
     this.detector?.close()
     this.detector = null
     this.initPromise = null
     this.error = null
+    this.currentModel = DEFAULT_DETECTOR_MODEL
   }
 }

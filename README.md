@@ -12,13 +12,13 @@ A real-time AI-powered head tracking application that displays a futuristic gami
 
 ## Features
 
-- **Real-time face detection** via MediaPipe Face Detection (blaze_face_short_range model, loaded from CDN)
+- **Real-time face detection** via MediaPipe Face Detection with two models — short-range (frontal, fast) and full-range (distant faces, wider angle/rotation tolerance), switchable from the config panel
 - **Live webcam OR video file tracking** — upload any local video (.mp4/.webm/.mov) and the HUD locks onto faces/characters in it
 - **Jitter-free head tracking** using a One-Euro filter pipeline with configurable smoothing parameters
 - **Target lock overlay** — segmented quadrant arcs, inner dashed ring, crosshair + center dot
 - **HUD effects** — pulsing ring, radar scan animation, cardinal reticle brackets, soft glow
 - **Loss persistence** — target holds briefly during brief occlusion before releasing
-- **Customization panel** — circle size slider, color presets (6), toggle ring / dot / animation / effects
+- **Customization panel** — circle size slider, color presets (7), toggle ring / dot / animation / effects
 - **Performance optimized** — DPR capped at 2, idle-skip canvases, transform caching, tab-hidden detection skip
 - **FPS display** — live smoothed frame-rate counter in the HUD header
 - **Strict TypeScript** — zero `any` types, strict compiler options
@@ -160,12 +160,13 @@ getUserMedia ──► <video> ──► useHeadTracking rAF loop
 
 Defaults in `src/types/tracking.ts`:
 
-| Parameter       | Default | Description                                                     |
-| --------------- | ------- | --------------------------------------------------------------- |
-| `minCutoff`     | 1.2     | One-Euro low-pass frequency cutoff (Hz) for position            |
-| `beta`          | 0.4     | One-Euro speed coefficient (higher = less lag on fast movement) |
-| `sizeMinCutoff` | 0.6     | Low-pass cutoff for circle radius                               |
-| `lossTimeoutMs` | 400     | Duration (ms) to hold target after face is lost                 |
+| Parameter       | Default | Description                                                                         |
+| --------------- | ------- | ----------------------------------------------------------------------------------- |
+| `minCutoff`     | 1.2     | One-Euro low-pass frequency cutoff (Hz) for position                                |
+| `beta`          | 0.4     | One-Euro speed coefficient (higher = less lag on fast movement)                     |
+| `sizeMinCutoff` | 0.6     | Low-pass cutoff for circle radius                                                   |
+| `lossTimeoutMs` | 400     | Duration (ms) to hold target after face is lost                                     |
+| `detectionMode` | `short` | MediaPipe detector model: `short` (front-facing) or `full` (distant / angled faces) |
 
 ### HUD colors
 
@@ -178,7 +179,8 @@ HUD_COLOR_PRESETS = [
   '#7bff3b', // Lime
   '#ffb03b', // Amber
   '#5fd4ff', // Ice
-  '#ff4b4b', // Red
+  '#ff4b4b', // Coral
+  '#8b0000', // Red (dark red)
 ]
 ```
 
