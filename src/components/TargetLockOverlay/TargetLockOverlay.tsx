@@ -39,7 +39,7 @@ function drawQuadrantArcs(
 ) {
   ctx.save()
   ctx.globalAlpha = alpha
-  ctx.lineWidth = Math.max(2, radius * 0.045)
+  ctx.lineWidth = Math.max(3.5, radius * 0.065)
   ctx.lineCap = 'round'
 
   for (const center of ARC_CENTERS) {
@@ -75,8 +75,8 @@ function drawInnerRing(
   alpha: number,
 ) {
   ctx.save()
-  ctx.globalAlpha = alpha * 0.55
-  ctx.lineWidth = 1
+  ctx.globalAlpha = alpha * 0.75
+  ctx.lineWidth = 2
   ctx.setLineDash([radius * 0.14, radius * 0.12])
   ctx.beginPath()
   ctx.arc(x, y, radius * 0.72, 0, Math.PI * 2)
@@ -91,12 +91,12 @@ function drawCenterDot(
   radius: number,
   alpha: number,
 ) {
-  const dotRadius = Math.max(2.5, radius * 0.045)
+  const dotRadius = Math.max(3, radius * 0.055)
   const crossLength = radius * 0.24
 
   ctx.save()
   ctx.globalAlpha = alpha
-  ctx.lineWidth = 1.5
+  ctx.lineWidth = 2.5
 
   ctx.beginPath()
   ctx.arc(x, y, dotRadius, 0, Math.PI * 2)
@@ -136,7 +136,7 @@ function drawScan(
     const trailAlpha = 0.16 * (1 - i / (SCAN_TRAIL_STEPS + 1))
 
     ctx.globalAlpha = alpha * trailAlpha
-    ctx.lineWidth = 1.5
+    ctx.lineWidth = 2.5
 
     ctx.beginPath()
     ctx.moveTo(x, y)
@@ -172,7 +172,7 @@ function drawReticleCorners(
 
   ctx.save()
   ctx.globalAlpha = alpha * 0.8
-  ctx.lineWidth = Math.max(1.5, radius * 0.025)
+  ctx.lineWidth = Math.max(2.5, radius * 0.04)
   ctx.lineCap = 'round'
 
   for (const angle of [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2]) {
@@ -385,11 +385,12 @@ export default function TargetLockOverlay({
       const pulseFactor = activeEffects.pulse
         ? 1 + 0.035 * Math.sin(now / 260)
         : 1
-      const radius = Math.max(baseRadius * scale * pulseFactor, 18)
+      const radius =
+        Math.max(baseRadius * scale * pulseFactor, 22) * activeStyle.sizeScale
 
       let alpha = progress
       if (target.lost && shouldTrack) {
-        alpha *= 0.55 + 0.45 * Math.sin((now / 120) * Math.PI)
+        alpha *= 0.85
       }
 
       if (alpha > 0.01) {

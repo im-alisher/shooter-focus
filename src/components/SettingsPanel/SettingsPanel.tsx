@@ -53,7 +53,7 @@ export default function SettingsPanel({
           <Slider
             label="Circle Size"
             min={0.6}
-            max={1.8}
+            max={2.5}
             step={0.05}
             value={settings.sizeScale}
             format={(value) => `${Math.round(value * 100)}%`}

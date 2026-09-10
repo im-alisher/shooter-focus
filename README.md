@@ -137,7 +137,7 @@ getUserMedia ──► <video> ──► useHeadTracking rAF loop
 | One-Euro filter              | Industry-standard for low-latency, frequency-adaptive smoothing; no motion prediction needed            |
 | Mutable refs + canvas rAF    | Avoids React re-renders at tracking frame-rate; overlays draw at display refresh independently of React |
 | DPR capped at 2              | Halves canvas memory vs. retina without visible quality loss                                            |
-| Loss persistence (400 ms)    | Target remains during brief blink or fast motion, preventing flickering                                 |
+| Loss persistence (650 ms)    | Target remains during brief blink or fast motion, preventing flickering                                 |
 
 ---
 
@@ -165,7 +165,7 @@ Defaults in `src/types/tracking.ts`:
 | `minCutoff`     | 1.2     | One-Euro low-pass frequency cutoff (Hz) for position                                |
 | `beta`          | 0.4     | One-Euro speed coefficient (higher = less lag on fast movement)                     |
 | `sizeMinCutoff` | 0.6     | Low-pass cutoff for circle radius                                                   |
-| `lossTimeoutMs` | 400     | Duration (ms) to hold target after face is lost                                     |
+| `lossTimeoutMs` | 650     | Duration (ms) to hold target after face is lost                                     |
 | `detectionMode` | `short` | MediaPipe detector model: `short` (front-facing) or `full` (distant / angled faces) |
 
 ### HUD colors

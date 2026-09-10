@@ -15,7 +15,7 @@ export interface HudSettings {
 
 export const DEFAULT_HUD_SETTINGS: HudSettings = {
   color: '#ff4b4b',
-  sizeScale: 1,
+  sizeScale: 1.25,
   showRing: true,
   showCenterDot: true,
   showLockAnimation: true,

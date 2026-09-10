@@ -95,7 +95,8 @@ export function useHeadTracking(
       if (
         !document.hidden &&
         serviceRef.current.state.status === 'ready' &&
-        video?.readyState === 4
+        video &&
+        video.readyState >= 2
       ) {
         const videoTime = video.currentTime
         if (videoTime !== lastVideoTime.current) {

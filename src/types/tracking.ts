@@ -34,6 +34,6 @@ export const DEFAULT_TRACKING_OPTIONS: TrackingOptions = {
   minCutoff: 1.2,
   beta: 0.4,
   sizeMinCutoff: 0.6,
-  lossTimeoutMs: 400,
+  lossTimeoutMs: 650,
   detectionMode: 'short',
 }
